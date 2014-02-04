@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>HTML5 Movie Maker example</title>
+	<script src="../src/jquery-1.8.3.js"></script>
+	<script src="../src/moviemaker.js"></script>
+
+</head>
+<body>
+	
+	<span></span>
+	This is a test
+
+	<script type="text/javascript">
+		HTMLMovieMaker.createMovie({
+			name: 'My Movie',
+			autoplay: true
+		});
+		var scene1 = HTMLMovieMaker.addScene();
+		scene1.addObject({text: 'Dynamic one'});
+		var scene2 = HTMLMovieMaker.addScene();
+		scene2.addObject({type:'IMAGE',text: 'Dynamic two'});
+
+		HTMLMovieMaker.start();
+	</script>
+	
+</body>
+</html>
