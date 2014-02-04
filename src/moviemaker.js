@@ -202,7 +202,6 @@ var HTMLMovieMaker = (function($){
 	}
 
 	function playFrame(){
-		//var updatedTime = totalDuration + scenes[currentSceneIndex].duration;
 		currentSceneIndex++;
 		console.log(currentSceneIndex);
 		console.dir(scenes[currentSceneIndex]);
@@ -211,6 +210,7 @@ var HTMLMovieMaker = (function($){
 		}
 		
 		scenes[currentSceneIndex].dom.style.display ='block';
+		currentScene = scenes[currentSceneIndex];
 		if(currentSceneIndex == scenes.length-1){
 			return;
 		}
