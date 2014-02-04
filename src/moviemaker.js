@@ -17,6 +17,8 @@ var HTMLMovieMaker = (function($){
 		stopped = false,
 		autoplay = false,
 		currentScene,
+		currentSceneIndex=-1,
+		totalDurationPlayed,
 		features= {},
 		dom = {},
 		scenes = [],
@@ -24,7 +26,7 @@ var HTMLMovieMaker = (function($){
 
 	var Scene = function( options ){
 		this.sceneConfig = {
-			duration: 100,
+			duration: 2000,
 			name: 'Scene'
 		};
 		extend( this.sceneConfig, options );
@@ -171,11 +173,10 @@ var HTMLMovieMaker = (function($){
 	function addScene( options ){
 		var scene = new Scene(options);
 
-		//scene.addObject({ text: 'Hey Jinto'});
-		scene.id = 'scene_'+ scenes.length;
+		scene.dom.id = 'scene_'+ scenes.length;
 		scene.dom.style.display = 'none';
 		scenes.push(scene);
-		dom.wrapper.prepend(scene.dom);
+		dom.wrapper.append(scene.dom);
 		return scene;
 	}
 
@@ -195,24 +196,27 @@ var HTMLMovieMaker = (function($){
 	}
 
 	function start(){
-		
-		function newFunction(index){
-			console.log('new Function'+index);
-			scenes[index].dom.style.display ='none';
-			if(index+1 != scenes.length){
-				scenes[index++].dom.style.display ='block';
-			}
-		}
-
-		var totalDuration=0;
 		scenes[0].dom.style.display ='block';
-		var index=0;
-		for(var i=0; i<scenes.length; i++){
-			var updatedTime = totalDuration + scenes[i].duration;
-			index= index+1;
-			setTimeout(function() {newFunction(index);},updatedTime);
-		}
+		console.log(scenes[0].duration);
+		setTimeout(playFrame,scenes[0].sceneConfig.duration);
 	}
+
+	function playFrame(){
+		//var updatedTime = totalDuration + scenes[currentSceneIndex].duration;
+		currentSceneIndex++;
+		console.log(currentSceneIndex);
+		console.dir(scenes[currentSceneIndex]);
+		if(currentSceneIndex !== 0){
+			scenes[currentSceneIndex-1].dom.style.display ='none';
+		}
+		
+		scenes[currentSceneIndex].dom.style.display ='block';
+		if(currentSceneIndex == scenes.length-1){
+			return;
+		}
+		setTimeout(playFrame,scenes[currentSceneIndex].sceneConfig.duration);
+	}
+
 
 	function pause(){
 
