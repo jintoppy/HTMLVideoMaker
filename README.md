@@ -5,6 +5,7 @@ A JavaScript library to create HTML videos
 
 An example usage is given below
 
+```html
 <script src="moviemaker.js"></script>
 
 <script type="text/javascript">
@@ -27,3 +28,4 @@ An example usage is given below
 
 	HTMLMovieMaker.start();
 </script>
+```
