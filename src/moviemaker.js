@@ -22,6 +22,8 @@ var HTMLMovieMaker = (function($){
 		features= {},
 		dom = {},
 		scenes = [],
+		animationStyle,
+		keyframeprefix = '-webkit-',
 		isMobileDevice;
 
 	var Scene = function( options ){
@@ -36,6 +38,7 @@ var HTMLMovieMaker = (function($){
 			divElement.className = 'scene';
 			divElement.innerHTML = 'This is the scene object html';
 			parent.dom = divElement;
+			parent.dom.style.display = 'none';
 			return parent;
 		}
 
@@ -133,6 +136,9 @@ var HTMLMovieMaker = (function($){
 		for(var styleattr in options.style){
 			spanElement.style[styleattr] = options.style[styleattr];
 		}
+		spanElement.style.animationPlayState = "paused";
+		spanElement.style.webkitAnimationPlayState = "paused";
+
 		this.dom = spanElement;
 		return this;
 	}
@@ -190,31 +196,137 @@ var HTMLMovieMaker = (function($){
 		if(config.controls === true){
 			addControls();
 		}
-
 		cacheDomElements();
 		
 	}
 
-	function start(){
-		scenes[0].dom.style.display ='block';
-		console.log(scenes[0].duration);
-		setTimeout(playFrame,scenes[0].sceneConfig.duration);
+	function createAnimationStyles(){
+		var styleDOM = document.createElement('style');
+		var keyFramesString= '';
+		for(var index=0, sceneCount= scenes.length; index < sceneCount; index++ ){
+			var currentScene = scenes[index];
+			var objects = scenes[index].objects;
+			for(var objectIndex=0,objectCount = objects.length; objectIndex < objectCount; objectIndex++){
+				var currentObject = objects[objectIndex];
+				var keyframes = currentObject.objectConfig.keyframes;
+
+				if(keyframes){
+					var totalKeyframes = keyframes.length;
+					if(totalKeyframes>0){
+					var startTime = keyframes[0].start;
+					
+					var endTime = keyframes[totalKeyframes-1].start;
+					var animationTime = endTime - startTime;
+					var animationName = 'scene_'+index+'_object_'+objectIndex+'_anim';
+
+					//adding the animations to the elements
+					currentObject.animationName = animationName;
+					currentObject.animationTime = animationTime;
+					currentObject.dom.style.animationDelay = startTime;
+					currentObject.dom.style.webkitAnimationDelay = startTime;
+
+					keyFramesString += '@' + keyframeprefix + 'keyframes ' + animationName +' { ';
+					for(var i=0; i<totalKeyframes; i++){
+
+						var currentKeyframe = keyframes[i];
+
+						var currentKeyFrameStyles = '';
+						for(var animStyle in currentKeyframe.styles){
+							currentKeyFrameStyles += animStyle + ':' + currentKeyframe.styles[animStyle]+';'
+						}
+
+						if(i==0){
+							keyFramesString += '0% {' + currentKeyFrameStyles  +' }';
+						}
+						else if(i==totalKeyframes-1){
+							keyFramesString += '100% {' + currentKeyFrameStyles  +' }';
+						}
+						else{
+							var currentKeyFramePercent =  Math.floor((currentKeyframe.start/endTime)*100);
+							keyFramesString += currentKeyFramePercent +'% {' + currentKeyFrameStyles  +' }';
+						}
+
+					}
+
+					keyFramesString += '}';
+
+				}
+
+				}
+				
+				
+			}
+
+		}
+		console.log(keyFramesString);
+		styleDOM.innerHTML = keyFramesString;
+		document.head.appendChild(styleDOM);
+		animationStyle = styleDOM;
+
 	}
 
-	function playFrame(){
-		currentSceneIndex++;
-		console.log(currentSceneIndex);
-		console.dir(scenes[currentSceneIndex]);
-		if(currentSceneIndex !== 0){
-			scenes[currentSceneIndex-1].dom.style.display ='none';
+	function start(){
+		createAnimationStyles();
+
+		showScene(0);
+		console.dir(scenes[0]);
+		console.dir(features);
+		if(!features.animation){
+			console.log('Animation not supported. Will not work.');
+			return;
 		}
+		setTimeout(playScene,scenes[0].sceneConfig.duration);
+	}
+
+	function playScene(){
+		currentSceneIndex++;
+		showScene(currentSceneIndex);
 		
-		scenes[currentSceneIndex].dom.style.display ='block';
 		currentScene = scenes[currentSceneIndex];
 		if(currentSceneIndex == scenes.length-1){
 			return;
 		}
-		setTimeout(playFrame,scenes[currentSceneIndex].sceneConfig.duration);
+		setTimeout(playScene,scenes[currentSceneIndex].sceneConfig.duration);
+	}
+
+	function playObjectsInScene(scene){
+
+	}
+
+	function showScene(currentSceneIndex){
+		if(currentSceneIndex !== 0){
+			hideScene(currentSceneIndex-1);	
+		}
+		scenes[currentSceneIndex].dom.style.display ='block';
+		setAnimationNamesToObjects(scenes[currentSceneIndex].objects);
+
+	}
+
+	function setAnimationNamesToObjects(objects){
+		if(objects.length>0){
+			for(var objindex=0; objindex<objects.length;objindex++){
+
+				var currentObject = objects[objindex];
+				if(currentObject.animationName){
+					currentObject.dom.style.animationName = currentObject.animationName;
+					currentObject.dom.style.webkitAnimationName = currentObject.animationName;
+					currentObject.dom.style.animationDuration = '2s';
+					currentObject.dom.style.webkitAnimationDuration = '2s';
+
+					currentObject.dom.style.animationPlayState = "running";
+					currentObject.dom.style.webkitAnimationPlayState = "running";	
+				}
+				
+			}
+
+		}
+	}
+
+	function hideScene(previousSceneIndex){
+		var sceneToBeHidden = scenes[previousSceneIndex];
+		sceneToBeHidden.dom.style.animation = '';
+		sceneToBeHidden.dom.style.webkitAnimation= '';
+		sceneToBeHidden.dom.style.display ='none';
 	}
 
 
@@ -226,11 +338,28 @@ var HTMLMovieMaker = (function($){
 
 	}
 
+	var AnimationFactory = {
+		create: function(options){
+			var objectAnim;
+			switch(options.type){
+				case 'TRANSFORM': 
+					objectAnim = options.object;
+				break;
+				case '':
+
+				break;
+			}
+		}
+	}
+
 	/**
 	 * Inspect the client to see what it's capable of, this
 	 * should only happens once per runtime.
 	 */
 	function checkCapabilities() {
+		var tempVar = document.createElement('span');
+
+		features.animation = tempVar.style.animation !== undefined || tempVar.style.webkitAnimation !== undefined;
 
 		features.transforms3d = 'WebkitPerspective' in document.body.style ||
 								'MozPerspective' in document.body.style ||

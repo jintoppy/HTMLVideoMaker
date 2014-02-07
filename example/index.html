@@ -17,8 +17,27 @@
 			name: 'My Movie',
 			autoplay: true
 		});
-		var scene1 = HTMLMovieMaker.addScene();
-		scene1.addObject({text: 'Dynamic one'});
+		var scene1 = HTMLMovieMaker.addScene({duration: 3000});
+		scene1.addObject({
+			text: 'Dynamic one',
+			keyframes:[
+			{
+				start: '1s',
+				styles:{
+					color: 'red'
+				}
+				
+			},
+			{
+				start: '2s',
+				styles: {
+					color: 'black'
+				}
+				
+			}
+			] 
+		});
+
 		var scene2 = HTMLMovieMaker.addScene();
 		scene2.addObject({type:'IMAGE',text: 'Dynamic two'});
 
