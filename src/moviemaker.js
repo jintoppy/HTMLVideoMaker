@@ -136,6 +136,7 @@ var HTMLMovieMaker = (function($){
 		for(var styleattr in options.style){
 			spanElement.style[styleattr] = options.style[styleattr];
 		}
+		spanElement.style.position = "relative";
 		spanElement.style.animationPlayState = "paused";
 		spanElement.style.webkitAnimationPlayState = "paused";
 
@@ -200,6 +201,15 @@ var HTMLMovieMaker = (function($){
 		
 	}
 
+	function addVendorPrefixes(style, stylevalue){
+		var styleString = '';
+		styleString += style.toLowerCase() + ': '+ stylevalue+ ';';
+		styleString += '-webkit-' + style.toLowerCase() + ': '+ stylevalue+ ';';
+		styleString += '-moz-' + style.toLowerCase() + ': '+ stylevalue+ ';';
+		styleString += '-ms-' + style.toLowerCase() + ': '+ stylevalue+ ';';
+		return styleString;
+	}
+
 	function createAnimationStyles(){
 		var styleDOM = document.createElement('style');
 		var keyFramesString= '';
@@ -232,7 +242,9 @@ var HTMLMovieMaker = (function($){
 
 						var currentKeyFrameStyles = '';
 						for(var animStyle in currentKeyframe.styles){
-							currentKeyFrameStyles += animStyle + ':' + currentKeyframe.styles[animStyle]+';'
+							currentKeyFrameStyles += animStyle in document.body.style ?
+									animStyle + ':' + currentKeyframe.styles[animStyle]+';' : 
+									addVendorPrefixes(animStyle, currentKeyframe.styles[animStyle]);
 						}
 
 						if(i==0){
@@ -279,6 +291,7 @@ var HTMLMovieMaker = (function($){
 	}
 
 	function playScene(){
+
 		currentSceneIndex++;
 		showScene(currentSceneIndex);
 		
@@ -314,7 +327,7 @@ var HTMLMovieMaker = (function($){
 					currentObject.dom.style.webkitAnimationDuration = '2s';
 
 					currentObject.dom.style.animationPlayState = "running";
-					currentObject.dom.style.webkitAnimationPlayState = "running";	
+					currentObject.dom.style.webkitAnimationPlayState = "running";
 				}
 				
 			}
@@ -338,28 +351,14 @@ var HTMLMovieMaker = (function($){
 
 	}
 
-	var AnimationFactory = {
-		create: function(options){
-			var objectAnim;
-			switch(options.type){
-				case 'TRANSFORM': 
-					objectAnim = options.object;
-				break;
-				case '':
-
-				break;
-			}
-		}
-	}
-
 	/**
 	 * Inspect the client to see what it's capable of, this
 	 * should only happens once per runtime.
 	 */
 	function checkCapabilities() {
-		var tempVar = document.createElement('span');
-
-		features.animation = tempVar.style.animation !== undefined || tempVar.style.webkitAnimation !== undefined;
+		
+		features.animation = 'webkitAnimation' in  document.body.style ||
+							  'animation' in document.body.style;
 
 		features.transforms3d = 'WebkitPerspective' in document.body.style ||
 								'MozPerspective' in document.body.style ||

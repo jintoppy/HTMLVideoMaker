@@ -17,6 +17,7 @@
 			name: 'My Movie',
 			autoplay: true
 		});
+
 		var scene1 = HTMLMovieMaker.addScene({duration: 3000});
 		scene1.addObject({
 			text: 'Dynamic one',
@@ -24,14 +25,18 @@
 			{
 				start: '1s',
 				styles:{
-					color: 'red'
+					color: 'red',
+					transform: 'rotate(7deg)',
+					left: '10px'
 				}
 				
 			},
 			{
 				start: '2s',
 				styles: {
-					color: 'black'
+					color: 'black',
+					transform: 'rotate(25deg)',
+					left: '100px'
 				}
 				
 			}
