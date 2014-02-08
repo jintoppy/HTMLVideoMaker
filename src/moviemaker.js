@@ -362,7 +362,6 @@ var HTMLMovieMaker = (function($){
 
 	function pauseAnimationsOfObjectsInScene(objects){
 		if(objects.length>0){
-			console.log(objects.length);
 			for(var objindex=0; objindex<objects.length;objindex++){
 				var currentObject = objects[objindex];
 				if(currentObject.animationName){
