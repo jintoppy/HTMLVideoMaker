@@ -29,14 +29,18 @@ var HTMLMovieMaker = (function($){
 	var Scene = function( options ){
 		this.sceneConfig = {
 			duration: 2000,
-			name: 'Scene'
+			name: 'Scene',
+			style:{
+				backgroundColor: '#fff'
+			}
 		};
 		extend( this.sceneConfig, options );
 		var parent = this;
 		function create(){
 			var divElement = document.createElement('div');
+			var parentStyleOptions = parent.sceneConfig.style;
+			updateSceneDomStyles(divElement, parentStyleOptions);
 			divElement.className = 'scene';
-			divElement.innerHTML = 'This is the scene object html';
 			parent.dom = divElement;
 			parent.dom.style.display = 'none';
 			return parent;
@@ -46,9 +50,14 @@ var HTMLMovieMaker = (function($){
 
 	};
 
+	function updateSceneDomStyles(element, options){
+		for(var styleElm in options){
+			element.style[styleElm] = options[styleElm];
+		}
+	}
+
 	Scene.prototype.addObject = function(options){
 		var movieObject = MovieObjectFactory.createObject(options);
-		this.dom.appendChild(movieObject.dom);
 		this.objects = this.objects || [];
 		movieObject.dom.id= 'object_' + this.objects.length;
 		this.objects.push(movieObject);
@@ -61,6 +70,7 @@ var HTMLMovieMaker = (function($){
 
 	Scene.prototype.setProperties = function(options){
 		extend(this.sceneConfig, options );
+		updateSceneDomStyles(this.dom, this.sceneConfig.style);
 	};
 
 	var MovieObjectFactory = {
@@ -197,7 +207,6 @@ var HTMLMovieMaker = (function($){
 		scene.dom.id = 'scene_'+ scenes.length;
 		scene.dom.style.display = 'none';
 		scenes.push(scene);
-		dom.wrapper.append(scene.dom);
 		return scene;
 	}
 
@@ -294,6 +303,7 @@ var HTMLMovieMaker = (function($){
 
 	function start(){
 		setInitialValues();
+		addAllScenesToDom();
 		createAnimationStyles();
 		started = true;
 		showScene(0);
@@ -302,6 +312,20 @@ var HTMLMovieMaker = (function($){
 			return;
 		}
 		playScene();
+	}
+
+	function addAllScenesToDom(){
+		scenes.forEach(function(scene){
+			dom.wrapper.append(scene.dom);
+			addAllObjectsToSceneDom(scene);
+		});
+		
+	}
+
+	function addAllObjectsToSceneDom(scene){
+		scene.objects.forEach(function(movieObject){
+			scene.dom.appendChild(movieObject.dom);
+		});
 	}
 
 	function pause(){
