@@ -1,0 +1,27 @@
+{
+  "title": "HTMLMovieMaker",
+  "name": "htmlmoviemaker",
+  "description": "Library to create HTML css movies",
+  "version": "0.0.1",
+  "author": {
+    "name": "Jinto Jose",
+    "email": "jintoppy@gmail.com"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jintoppy/HTMLVideoMaker.git"
+  },
+  "devDependencies": {
+    "grunt": ">=0.4.0",
+    "grunt-contrib-uglify": "*"
+  },
+  "scripts": {
+  },
+  "homepage": "http://jintoppy.github.io/HTMLVideoMaker",
+  "licenses": [
+    {
+      "type": "MIT"
+    }
+  ]
+}
