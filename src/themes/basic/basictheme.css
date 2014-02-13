@@ -1,0 +1,55 @@
+.moviemaker-wrapper
+{
+	box-shadow: 2px 2px 10px 4px #C9C9C9;
+	border-radius: 5px;
+	border-top: 10px solid rgba(0, 0, 0, 0.3);
+	border-right: 10px solid rgba(0, 0, 0, 0.3);
+	border-bottom: 40px solid rgba(0, 0, 0, 0.3);
+	border-left: 10px solid rgba(0, 0, 0, 0.3);
+
+	-webkit-background-clip: padding-box; 
+	background-clip: padding-box;
+
+	margin: 10px auto;
+}
+
+#video-controls button
+{
+	background: none;
+	background-color: transparent;
+	border: none;
+	-moz-transition: all 0.2s ease-in-out; /* Firefox */
+    -ms-transition: all 0.2s ease-in-out; /* IE future proofing */
+    -o-transition: all 0.2s ease-in-out;  /* Opera */
+	-webkit-transition: all 0.2s ease-in-out; /* Safari and Chrome */
+	transition: all 0.2s ease-in-out; 
+	opacity: 0.7;
+	width: 40px;
+	height: 40px;
+	margin-right: 10px;
+	cursor: pointer;
+	border: none;
+	color: transparent;
+}
+
+
+#video-controls button.play
+{
+	background-image: url('button_black_play.png');
+
+}
+
+#video-controls button.pause
+{
+	background-image: url('button_black_pause.png');	
+}
+
+#video-controls #stop
+{
+	background-image: url('button_black_stop.png');
+}
+
+#video-controls #fullscreen-button
+{
+	background-image: url('full_screen.png');
+}

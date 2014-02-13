@@ -1,15 +1,15 @@
-var HTMLMovieMaker = (function($){
+var HTMLMovieMaker = (function(undefined){
 
 	'use strict';
 
 	var OBJECT_TYPES = '',
 		config = {
-			width: 900,
-			height: 700,
+			width: 800,
+			height: 500,
 			name: 'Untitled',
 			createBy: 'Jinto Jose',
 			controls: true,
-			containerDiv: '#movie-container'
+			allowFullScreen: false
 		},
 		loaded = false,
 		paused = false,
@@ -24,6 +24,7 @@ var HTMLMovieMaker = (function($){
 		scenes = [],
 		animationStyle,
 		keyframeprefix = '-webkit-',
+		fullScreenActive = false,
 		isMobileDevice;
 
 	var Scene = function( options ){
@@ -43,6 +44,8 @@ var HTMLMovieMaker = (function($){
 			divElement.className = 'scene';
 			parent.dom = divElement;
 			parent.dom.style.display = 'none';
+			parent.dom.style.width = '100%';
+			parent.dom.style.height = '100%';
 			return parent;
 		}
 
@@ -81,7 +84,7 @@ var HTMLMovieMaker = (function($){
 				case 'TEXT':
 					movieObject = new TextObject(options);
 					break;
-				case 'IMG':
+				case 'IMAGE':
 					movieObject = new ImageObject(options);
 					break;
 				case 'VIDEO':
@@ -117,6 +120,23 @@ var HTMLMovieMaker = (function($){
 			extend( this.objectConfig, options );
 	};
 
+	MovieObject.prototype.setInitialStyles = function(element, options){
+		var styleOptions = options.styles;
+		for(var styleattr in styleOptions){
+			element.style[styleattr] = styleOptions[styleattr];
+		}
+
+		element.style.position = "relative";
+		element.style.top = options.y? options.y + "px" : "0px";
+		element.style.left = options.x? options.x + "px" : "0px";
+		element.style.animationPlayState = "paused";
+		element.style.MozAnimationPlayState = "paused";
+		element.style.webkitAnimationPlayState = "paused";
+		element.style.animationFillMode = "forwards";
+		element.style.MozAnimationFillMode = "forwards";
+		element.style.webkitAnimationFillMode = "forwards";
+	};
+
 	function inherit(subClass, superClass){
 		var F = function(){};
 		F.prototype= superClass.prototype;
@@ -131,6 +151,14 @@ var HTMLMovieMaker = (function($){
 
 	function ImageObject(options){
 		ImageObject.superclass.constructor.call(this, options);
+		var imageOptions = this.objectConfig;
+		var imageEl = document.createElement('img');
+		imageEl.src = imageOptions.src;
+		imageEl.alt = imageOptions.text;
+		this.setInitialStyles(imageEl, imageOptions);
+		this.dom = imageEl;
+		return this;
+
 	}
 
 	function VideoObject(options){
@@ -139,17 +167,11 @@ var HTMLMovieMaker = (function($){
 
 	function TextObject(options){
 		TextObject.superclass.constructor.call(this, options);
-		var options = this.objectConfig;
+		var textOptions = this.objectConfig;
 		var spanElement = document.createElement('span');
-		spanElement.innerHTML = options.text;
+		spanElement.innerHTML = textOptions.text;
 		spanElement.className = 'text-object';
-		for(var styleattr in options.style){
-			spanElement.style[styleattr] = options.style[styleattr];
-		}
-		spanElement.style.position = "relative";
-		spanElement.style.animationPlayState = "paused";
-		spanElement.style.webkitAnimationPlayState = "paused";
-
+		this.setInitialStyles(spanElement, textOptions);
 		this.dom = spanElement;
 		return this;
 	}
@@ -182,23 +204,141 @@ var HTMLMovieMaker = (function($){
 	}
 
 	function addControls(){
-		var startButton = $('<button id="start">Start</button>');
-		var pauseButton = $('<button id="pause">Pause</button>');
-		var stopButton = $('<button id="stop">Stop</button>');
-		var toolbar = $('<div id="toolbar" />');
+		var playPauseButton = document.createElement('button');
+		playPauseButton.id = "play-pause-button";
+		playPauseButton.className = "play";
+		playPauseButton.title = "play";
+		playPauseButton.style.float = "left";
+		playPauseButton.innerHTML = "Play";
 
-		toolbar.css({position: 'absolute', top: '50%', left: 10}).append([startButton, pauseButton, stopButton]);
-		 
-		$(config.containerDiv).append(toolbar);
-			
+		var stopButton = document.createElement('button');
+		stopButton.id = "stop";
+		stopButton.title = "stop";
+		stopButton.style.float = "left";
+		stopButton.style.display = "none";
+		stopButton.innerHTML = "Stop";
+
+		var fullScreenButton = document.createElement('button');
+		fullScreenButton.id = "fullscreen-button";
+		fullScreenButton.title = "FullScreen";
+		fullScreenButton.innerHTML = "FullScreen";
+
+		var toolbar = document.createElement('div');
+		toolbar.id = "video-controls";
+		toolbar.appendChild(playPauseButton);
+		toolbar.appendChild(stopButton);
+
+		var topValue = dom.wrapper.offsetTop + config.height + 10;
+		var leftValue = dom.wrapper.offsetLeft + ((config.width/2) - 100);
+
+		toolbar.style.position = "absolute";
+		toolbar.style.top = topValue+ "px";
+		toolbar.style.left = leftValue + "px";
+		toolbar.style.display ="block";
+		if(config.allowFullScreen){
+			toolbar.appendChild(fullScreenButton);
+		}
+		
+		document.body.appendChild(toolbar);
+	}
+
+	function toggleControlsDisplay(){
+		if(started){
+			var isHidden = dom.toolbar.style.display === 'none' || dom.toolbar.style.visibility === 'hidden';
+			dom.toolbar.style.display = isHidden? "block": "none";
+		}
+	}
+
+	function togglePlayPauseElement(addPlay){
+		var playPauseBtn = dom.toolbar.playPauseButton;
+		if(addPlay){
+			playPauseBtn.title = "play";
+			playPauseBtn.innerHTML = "Play";
+			playPauseBtn.className = "play";
+		}
+		else{
+			playPauseBtn.title = "pause";
+			playPauseBtn.innerHTML = "Pause";
+			playPauseBtn.className = "pause";
+		}
+	}
+
+	function togglePlayPause(){
+		var playPauseBtn = dom.toolbar.playPauseButton;
+
+		if(playPauseBtn.title === "play"){
+			playPauseBtn.title = "pause";
+			playPauseBtn.innerHTML = "Pause";
+			playPauseBtn.className = "pause";
+			if(started === false){
+				start();
+			}
+			else {
+				resume();
+			}
+		}
+		else{
+			playPauseBtn.title = "play";
+			playPauseBtn.innerHTML = "Play";
+			playPauseBtn.className = "play";
+			pause();
+		}
+		
+	}
+
+	function goFullScreen(){
+
+		var elem = document.body;
+		if (elem.requestFullscreen) {
+			elem.requestFullscreen();
+		} else if (elem.msRequestFullscreen) {
+			elem.msRequestFullscreen();
+		} else if (elem.mozRequestFullScreen) {
+			elem.mozRequestFullScreen();
+		} else if (elem.webkitRequestFullscreen) {
+			elem.webkitRequestFullscreen();
+		}
+
+		//dom.wrapper.style.width = "100%";
+		//dom.wrapper.style.height = "100%";
+
+		fullScreenActive = true;
+
+	}
+
+	function restoreContainerSize(){
+		dom.wrapper.style.width = config.width + "px";
+		dom.wrapper.style.height = config.height + "px";
+	}
+
+	function onFullScreenChange(){
+		var fullScreenElement = FullScreenElement || msFullscreenElement ||
+									mozFullScreenElement || webkitFullscreenElement;
+		if(fullScreenActive && fullScreenElement){
+			fullScreenActive = false;
+			restoreContainerSize();
+		}
+	}
+
+	function attachEvents(){
+		//dom.wrapper.addEventListener('mouseover', toggleControlsDisplay);
+		//dom.wrapper.addEventListener('mouseout', toggleControlsDisplay);
+
+		dom.toolbar.playPauseButton.addEventListener("click", togglePlayPause);
+
+		dom.toolbar.stopButton.addEventListener("click", stop);
+
+		dom.toolbar.fullScreenButton.addEventListener("click", goFullScreen);
+
+		//document.body.addEventListener('webkitfullscreenchange mozfullscreenchange fullscreenchange', onFullScreenChange);
+
 	}
 
 	function cacheDomElements(){
-		dom.wrapper = $(config.containerDiv);
-		dom.toolbar = $('#toolbar');
-		dom.toolbar.startButton = $('#toolbar #start');
-		dom.toolbar.pauseButton = $('#toolbar #pause');
-		dom.toolbar.stopButton = $('#toolbar #stop');
+		dom.toolbar = document.querySelector('#video-controls');
+		dom.toolbar.playPauseButton = document.querySelector('#video-controls #play-pause-button');
+		dom.toolbar.stopButton = document.querySelector('#video-controls #stop');
+		dom.toolbar.fullScreenButton = document.querySelector('#video-controls #fullscreen-button');
 	}
 
 	function addScene( options ){
@@ -211,18 +351,38 @@ var HTMLMovieMaker = (function($){
 	}
 
 	function setupDom(){
-		if($(config.containerDiv).length === 0){
-			$('<div id="movie-container" />').appendTo(document.body);
-
+		var movieContainer;
+		if(!config.containerDiv || document.querySelector(config.containerDiv).length === 0){
+			movieContainer = document.createElement('div');
+			movieContainer.id =  "movie-container";
+			movieContainer.className = "moviemaker-wrapper";
+			document.body.appendChild(movieContainer);
+		}
+		else{
+			movieContainer = document.querySelector(config.containerDiv);
 		}
 
-		$(config.containerDiv).css({width: config.width, height: config.height});
+		movieContainer.style.width = parseInt(config.width, 10) + 'px';
+		movieContainer.style.height = parseInt(config.height, 10) + 'px';
 
+		dom.wrapper = movieContainer;
 		if(config.controls === true){
 			addControls();
 		}
+
 		cacheDomElements();
-		
+
+		attachEvents();
+		addGeneralStyles();
+	}
+
+	function addGeneralStyles(){
+		var generalStyleDOM = document.createElement('style');
+		var wrapperStyle = dom.wrapper.style;
+		var styles = ".moviemaker-wrapper * { max-width: "+ wrapperStyle.width+"; max-height: "+ wrapperStyle.height+"; }";
+		generalStyleDOM.innerHTML = styles;
+		document.head.appendChild(generalStyleDOM);
+
 	}
 
 	function addVendorPrefixes(style, stylevalue){
@@ -249,7 +409,7 @@ var HTMLMovieMaker = (function($){
 					var startTime = keyframes[0].start;
 					
 					var endTime = keyframes[totalKeyframes-1].start;
-					var animationTime = endTime - startTime;
+					var animationTime = parseInt(endTime) - parseInt(startTime);
 					var animationName = 'scene_'+index+'_object_'+objectIndex+'_anim';
 
 					//adding the animations to the elements
@@ -265,12 +425,12 @@ var HTMLMovieMaker = (function($){
 
 						var currentKeyFrameStyles = '';
 						for(var animStyle in currentKeyframe.styles){
-							currentKeyFrameStyles += animStyle in document.body.style ?
-									animStyle + ':' + currentKeyframe.styles[animStyle]+';' : 
+							currentKeyFrameStyles +=  (animStyle!= 'filter' && animStyle in document.body.style) ?
+									animStyle + ':' + currentKeyframe.styles[animStyle] +';' :
 									addVendorPrefixes(animStyle, currentKeyframe.styles[animStyle]);
 						}
 
-						if(i==0){
+						if(i===0){
 							keyFramesString += '0% {' + currentKeyFrameStyles  +' }';
 						}
 						else if(i==totalKeyframes-1){
@@ -306,17 +466,19 @@ var HTMLMovieMaker = (function($){
 		addAllScenesToDom();
 		createAnimationStyles();
 		started = true;
+		dom.toolbar.stopButton.style.display = "block";
 		showScene(0);
 		if(!features.animation){
 			console.log('Animation not supported. Will not work.');
 			return;
 		}
 		playScene();
+
 	}
 
 	function addAllScenesToDom(){
 		scenes.forEach(function(scene){
-			dom.wrapper.append(scene.dom);
+			dom.wrapper.appendChild(scene.dom);
 			addAllObjectsToSceneDom(scene);
 		});
 		
@@ -347,12 +509,15 @@ var HTMLMovieMaker = (function($){
 
 	function stop(){
 		stopped = true;
+		started = false;
 		scenes.forEach(function(scene){
 			clearTimeout(scene.sceneConfig.timeoutObj);
 			removeAllAnimationsOfScene(scene);
 		});
-
+		dom.toolbar.stopButton.style.display = "none";
 		setInitialValues();
+		togglePlayPauseElement(true);
+
 	}
 
 	function removeAllAnimationsOfScene(scene){
@@ -374,18 +539,17 @@ var HTMLMovieMaker = (function($){
 
 	function showScene(currentSceneCount){
 		if(currentSceneCount !== 0){
-			hideScene(currentSceneCount-1);	
+			hideScene(currentSceneCount-1);
 		}
 
 		scenes[currentSceneCount].startedTime = Date.now();
 		scenes[currentSceneCount].dom.style.display ='block';
 		currentScene = scenes[currentSceneCount];
-		activeAnimationsOfObjectsInScene(scenes[currentSceneCount].objects);
-
+		activeAnimationsOfObjectsInScene(scenes[currentSceneCount], scenes[currentSceneCount].objects);
 	}
 
 	function pauseAnimationsOfObjectsInScene(objects){
-		if(objects.length>0){
+		if(objects && objects.length>0){
 			for(var objindex=0; objindex<objects.length;objindex++){
 				var currentObject = objects[objindex];
 				if(currentObject.animationName){
@@ -413,7 +577,7 @@ var HTMLMovieMaker = (function($){
 		}
 	}
 
-	function activeAnimationsOfObjectsInScene(objects){
+	function activeAnimationsOfObjectsInScene(scene, objects){
 		if(objects.length>0){
 			for(var objindex=0; objindex<objects.length;objindex++){
 
@@ -421,8 +585,9 @@ var HTMLMovieMaker = (function($){
 				if(currentObject.animationName){
 					currentObject.dom.style.animationName = currentObject.animationName;
 					currentObject.dom.style.webkitAnimationName = currentObject.animationName;
-					currentObject.dom.style.animationDuration = '2s';
-					currentObject.dom.style.webkitAnimationDuration = '2s';
+					var duration = currentObject.animationTime + 's';
+					currentObject.dom.style.animationDuration = duration;
+					currentObject.dom.style.webkitAnimationDuration = duration;
 
 					currentObject.dom.style.animationPlayState = "running";
 					currentObject.dom.style.webkitAnimationPlayState = "running";
@@ -439,8 +604,6 @@ var HTMLMovieMaker = (function($){
 	}
 
 
-	
-
 	/**
 	 * Inspect the client to see what it's capable of, this
 	 * should only happens once per runtime.
@@ -448,7 +611,7 @@ var HTMLMovieMaker = (function($){
 	function checkCapabilities() {
 		
 		features.animation = 'webkitAnimation' in  document.body.style ||
-							  'animation' in document.body.style;
+								'animation' in document.body.style;
 
 		features.transforms3d = 'WebkitPerspective' in document.body.style ||
 								'MozPerspective' in document.body.style ||
@@ -492,4 +655,4 @@ var HTMLMovieMaker = (function($){
 		addScene: addScene
 	};
 
-})(jQuery);
+})();

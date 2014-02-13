@@ -3,30 +3,38 @@
 <head>
 	<meta charset="UTF-8">
 	<title>HTML5 Movie Maker example</title>
-	<script src="../src/jquery-1.8.3.js"></script>
+	<link rel="stylesheet" href="../src/themes/basic/basictheme.css" />
+	<style>
+
+	</style>
 	<script src="../src/moviemaker.js"></script>
 
 </head>
 <body>
 	
-	<span></span>
-	This is a test
+
 
 	<script type="text/javascript">
 		HTMLMovieMaker.createMovie({
 			name: 'My Movie',
-			autoplay: true
+			autoplay: true,
+			allowFullScreen: true
 		});
 
 		var scene1 = HTMLMovieMaker.addScene({duration: 10000, style: {backgroundColor: 'blue'}});
 		scene1.addObject({
 			text: 'Dynamic one',
+			x: 10, 
+			y: 20,
+			styles: {
+				color: '#fff',
+				fontSize: '20px',
+				fontWeight: 'bold'
+			},
 			keyframes:[
 			{
 				start: '1s',
 				styles:{
-					color: 'red',
-					transform: 'rotate(7deg)',
 					left: '10px'
 				}
 				
@@ -34,8 +42,6 @@
 			{
 				start: '3s',
 				styles: {
-					color: 'black',
-					transform: 'rotate(25deg)',
 					left: '100px'
 				}
 				
@@ -43,10 +49,32 @@
 			] 
 		});
 
-		var scene2 = HTMLMovieMaker.addScene();
-		scene2.addObject({type:'IMAGE',text: 'Dynamic two'});
-
-		HTMLMovieMaker.start();
+		var scene2 = HTMLMovieMaker.addScene({duration: 10000});
+		scene2.addObject({
+			x: 10,
+			y: 20,
+			type:'IMAGE',
+			text: 'Dynamic two',
+			src: 'HTML5_Logo_512.png',
+			keyframes:[
+			{
+				start: '1s',
+				styles:{
+					filter: 'grayscale(100%)',
+					transform: 'rotate(7deg)'
+				}
+				
+			},
+			{
+				start: '7s',
+				styles: {
+					filter: 'grayscale(0%)',
+					transform: 'rotate(25deg)'
+				}
+				
+			}
+			]
+		});
 
 	</script>
 

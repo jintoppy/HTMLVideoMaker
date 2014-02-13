@@ -22,14 +22,24 @@ module.exports = function(grunt) {
       options: {
         banner: meta.banner
       }
+    },
+
+    bytesize: {
+      all: {
+        src: [
+          'src/moviemaker.<%= pkg.version %>.min.js'
+        ]
+      }
     }
+
   });
 
 
   // Load tasks
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-bytesize');
   
   // Default task.
-  grunt.registerTask('default', ['uglify']);
+  grunt.registerTask('default', ['uglify', 'bytesize']);
 
 };
