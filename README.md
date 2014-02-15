@@ -23,9 +23,21 @@ An example usage is given below
 	scene2.addObject(
 		{ 
 			type:'IMAGE', 
-			url: 'img/image1.jpg'
+			src: 'img/image1.jpg'
 		});
 
 	HTMLMovieMaker.start();
 </script>
+```
+
+There are three types of object supported right now. TEXT(this is the default one), IMAGE, VIDEO
+
+You can add eventlisteners to each scene show. 
+```html
+		var scene2 = HTMLMovieMaker.addScene({duration: 5000});
+		var scene2Elm = scene2.getSceneElement();
+		scene2Elm.addEventListener('onsceneshow', function(e){
+			// do what you want when scene 2 is shown 
+		});
+
 ```
