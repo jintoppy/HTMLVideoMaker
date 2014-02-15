@@ -18,17 +18,7 @@
 	
 	<h1>HTML Video Maker</h1>
 	
-	<!-- <video id="test" autoplay src="movie.mp4"></video> -->
-
 	<script type="text/javascript">
-		// var v = document.getElementById('test');
-		// console.log(v.duration);
-		// console.log(v.readyState);
-		// v.addEventListener('canplay', function(){
-		// 	console.log(v.readyState);
-		// 	console.log(v.duration);
-		// });
-
 
 		HTMLMovieMaker.createMovie({
 			name: 'My Movie',
@@ -36,7 +26,7 @@
 		});
 
 		var scene1 = HTMLMovieMaker.addScene({
-			duration: 15000, 
+			duration: 5000, 
 			style: {
 				backgroundColor: 'blue'
 			}
@@ -70,7 +60,39 @@
 			] 
 		});
 
+		
 		scene1.addObject({
+			x: 300,
+			y: 150,
+			type:'IMAGE',
+			text: 'Dynamic two',
+			src: 'html5-css3.jpg',
+			keyframes:[
+			{
+				start: '1s',
+				styles:{
+					filter: 'grayscale(0%)',
+					left: '300px'
+				}
+			},
+			{
+				start: '4s',
+				styles: {
+					left: '100px',
+					filter: 'grayscale(100%)'				}
+				
+			}
+			]
+		});
+
+
+		var scene2 = HTMLMovieMaker.addScene({duration: 12000});
+		var scene2Elm = scene2.getSceneElement();
+		scene2Elm.addEventListener('onsceneshow', function(e){
+			document.body.style.backgroundColor = 'brown';
+		});
+
+		scene2.addObject({
 			src: 'movie.mp4',
 			type: 'VIDEO',
 			x: 300, 
@@ -101,36 +123,7 @@
 			}
 			] 
 		});
-
-		var scene2 = HTMLMovieMaker.addScene({duration: 5000});
-		var scene2Elm = scene2.getSceneElement();
-		scene2Elm.addEventListener('onsceneshow', function(e){
-			document.body.style.backgroundColor = 'brown';
-		});
-		scene2.addObject({
-			x: 10,
-			y: 20,
-			type:'IMAGE',
-			text: 'Dynamic two',
-			src: 'html5-css3.jpg',
-			keyframes:[
-			{
-				start: '1s',
-				styles:{
-					filter: 'grayscale(0%)',
-					left: '10px'
-				}
-			},
-			{
-				start: '7s',
-				styles: {
-					left: '100px',
-					filter: 'grayscale(100%)'				}
-				
-			}
-			]
-		});
-
+		
 	</script>
 
 

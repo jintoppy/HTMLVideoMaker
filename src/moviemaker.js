@@ -45,6 +45,7 @@ var HTMLMovieMaker = (function(undefined){
 			parent.dom = divElement;
 			parent.dom.style.display = 'none';
 			parent.dom.style.width = '100%';
+			parent.dom.style.position = "relative";
 			parent.dom.style.height = '100%';
 			return parent;
 		}
@@ -130,7 +131,7 @@ var HTMLMovieMaker = (function(undefined){
 			element.style[styleattr] = styleOptions[styleattr];
 		}
 
-		element.style.position = "relative";
+		element.style.position = "absolute";
 		element.style.top = options.y? options.y + "px" : "0px";
 		element.style.left = options.x? options.x + "px" : "0px";
 		element.style.animationPlayState = "paused";
@@ -507,13 +508,16 @@ var HTMLMovieMaker = (function(undefined){
 			clearTimeout(scene.sceneConfig.timeoutObj);
 		});
 		currentScene.pausedTime = Date.now();
+		var elapsedTime =  currentScene.pausedTime - currentScene.startedTime;
+		currentScene.playedTime = currentScene.playedTime?  currentScene.playedTime + elapsedTime: elapsedTime;
+		
 	}
 
 	function resume(){
 		paused = false;
-		var elapsedTime =  currentScene.startedTime - currentScene.pausedTime;
-		var remainingTime = currentScene.sceneConfig.duration - elapsedTime;
+		var remainingTime = currentScene.sceneConfig.duration - currentScene.playedTime;
 		resumeAnimationsOfObjectsInScene(currentScene.objects);
+		currentScene.startedTime = Date.now();
 		currentScene.sceneConfig.timeoutObj = setTimeout(playScene, remainingTime);
 	}
 
