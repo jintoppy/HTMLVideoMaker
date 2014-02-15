@@ -76,6 +76,10 @@ var HTMLMovieMaker = (function(undefined){
 		updateSceneDomStyles(this.dom, this.sceneConfig.style);
 	};
 
+	Scene.prototype.getSceneElement = function(){
+		return this.dom;
+	};
+
 	var MovieObjectFactory = {
 		createObject:  function(options){
 			var movieObject,
@@ -163,6 +167,14 @@ var HTMLMovieMaker = (function(undefined){
 
 	function VideoObject(options){
 		VideoObject.superclass.constructor.call(this, options);
+		var videoOptions = this.objectConfig;
+		var videoEl = document.createElement('video');
+		videoEl.src = videoOptions.src;
+		videoEl.autoplay = false;
+		videoEl.poster = videoOptions.posterImageUrl?videoOptions.posterImageUrl: '' ;
+		this.setInitialStyles(videoEl, videoOptions);
+		this.dom = videoEl;
+		return this;
 	}
 
 	function TextObject(options){
@@ -409,7 +421,7 @@ var HTMLMovieMaker = (function(undefined){
 					var startTime = keyframes[0].start;
 					
 					var endTime = keyframes[totalKeyframes-1].start;
-					var animationTime = parseInt(endTime) - parseInt(startTime);
+					var animationTime = parseInt(endTime,10) - parseInt(startTime,10);
 					var animationName = 'scene_'+index+'_object_'+objectIndex+'_anim';
 
 					//adding the animations to the elements
@@ -417,7 +429,6 @@ var HTMLMovieMaker = (function(undefined){
 					currentObject.animationTime = animationTime;
 					currentObject.dom.style.animationDelay = startTime;
 					currentObject.dom.style.webkitAnimationDelay = startTime;
-
 					keyFramesString += '@' + keyframeprefix + 'keyframes ' + animationName +' { ';
 					for(var i=0; i<totalKeyframes; i++){
 
@@ -467,7 +478,6 @@ var HTMLMovieMaker = (function(undefined){
 		createAnimationStyles();
 		started = true;
 		dom.toolbar.stopButton.style.display = "block";
-		showScene(0);
 		if(!features.animation){
 			console.log('Animation not supported. Will not work.');
 			return;
@@ -533,18 +543,24 @@ var HTMLMovieMaker = (function(undefined){
 		if(currentSceneIndex == scenes.length-1){
 			return;
 		}
+		scenes[currentSceneIndex+1].sceneConfig.timeoutObj = setTimeout(playScene,scenes[currentSceneIndex].sceneConfig.duration);
 		currentSceneIndex++;
-		scenes[currentSceneIndex].sceneConfig.timeoutObj = setTimeout(playScene,scenes[currentSceneIndex].sceneConfig.duration);
+	}
+
+	function triggerEvent(eventName, element, properties){
+
+		var event = new CustomEvent(eventName, properties);
+		element.dispatchEvent(event);
 	}
 
 	function showScene(currentSceneCount){
 		if(currentSceneCount !== 0){
 			hideScene(currentSceneCount-1);
 		}
-
 		scenes[currentSceneCount].startedTime = Date.now();
 		scenes[currentSceneCount].dom.style.display ='block';
 		currentScene = scenes[currentSceneCount];
+		triggerEvent("onsceneshow", currentScene.dom, currentScene);
 		activeAnimationsOfObjectsInScene(scenes[currentSceneCount], scenes[currentSceneCount].objects);
 	}
 
@@ -552,6 +568,9 @@ var HTMLMovieMaker = (function(undefined){
 		if(objects && objects.length>0){
 			for(var objindex=0; objindex<objects.length;objindex++){
 				var currentObject = objects[objindex];
+				if(currentObject.objectConfig.type === 'VIDEO'){
+					pauseVideo(currentObject);
+				}
 				if(currentObject.animationName){
 					currentObject.dom.style.animationPlayState = "paused";
 					currentObject.dom.style.webkitAnimationPlayState = "paused";
@@ -567,6 +586,9 @@ var HTMLMovieMaker = (function(undefined){
 			for(var objindex=0; objindex<objects.length;objindex++){
 
 				var currentObject = objects[objindex];
+				if(currentObject.objectConfig.type === 'VIDEO'){
+					playVideo(currentObject);
+				}
 				if(currentObject.animationName){
 					currentObject.dom.style.animationPlayState = "running";
 					currentObject.dom.style.webkitAnimationPlayState = "running";
@@ -577,11 +599,20 @@ var HTMLMovieMaker = (function(undefined){
 		}
 	}
 
+	function playVideo(object){
+		object.dom.play();
+	}
+	function pauseVideo(object){
+		object.dom.pause();
+	}
+
 	function activeAnimationsOfObjectsInScene(scene, objects){
 		if(objects.length>0){
 			for(var objindex=0; objindex<objects.length;objindex++){
-
 				var currentObject = objects[objindex];
+				if(currentObject.objectConfig.type === 'VIDEO'){
+					playVideo(currentObject);
+				}
 				if(currentObject.animationName){
 					currentObject.dom.style.animationName = currentObject.animationName;
 					currentObject.dom.style.webkitAnimationName = currentObject.animationName;
