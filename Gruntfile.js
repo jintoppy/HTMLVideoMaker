@@ -9,7 +9,6 @@ module.exports = function(grunt) {
     pre: '\n(function(window, document, undefined){\n\n',
     post: '\n})(window,document);'
   };
-  
 
   // Project configuration.
   grunt.initConfig({
