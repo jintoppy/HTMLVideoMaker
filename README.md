@@ -1,4 +1,4 @@
-HTMLVideoMaker
+HTMLVideoMaker[![Build Status](https://travis-ci.org/jintoppy/HTMLVideoMaker.png)](https://travis-ci.org/jintoppy/HTMLVideoMaker)
 ==============
 
 A JavaScript library to create HTML videos
